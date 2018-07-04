@@ -9,8 +9,7 @@ module.exports =
 class LessAutocompileView
   constructor: (serializeState) ->
     @subscriptions = new CompositeDisposable
-    @subscriptions.add atom.workspace.onDidAddTextEditor((event) =>
-      editor = event.textEditor
+    @subscriptions.add atom.workspace.observeTextEditors((editor) =>
       filePath = editor.getURI()
       fileExt = path.extname filePath
       if fileExt is '.less'
