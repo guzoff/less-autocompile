@@ -8,22 +8,30 @@ readline = require 'readline'
 module.exports =
 class LessAutocompileView
   constructor: (serializeState) ->
-    atom.commands.add 'atom-workspace', 'core:save': => @handleSave()
+    @subscriptions = new CompositeDisposable
+    @subscriptions.add atom.workspace.onDidAddTextEditor((event) =>
+      editor = event.textEditor
+      filePath = editor.getURI()
+      fileExt = path.extname filePath
+      if fileExt is '.less'
+        editorSubscriptions = new CompositeDisposable
+        editorSubscriptions.add editor.onDidSave( =>
+          @handleSave filePath
+        )
+        editorSubscriptions.add editor.onDidDestroy( =>
+          editorSubscriptions.dispose()
+          @subscriptions.remove editorSubscriptions
+        )
+        @subscriptions.add editorSubscriptions
+    )
 
   serialize: ->
 
   destroy: ->
 
-  handleSave: ->
-    @activeEditor = atom.workspace.getActiveTextEditor()
-
-    if @activeEditor
-      @filePath = @activeEditor.getURI()
-      @fileExt = path.extname @filePath
-
-      if @fileExt == '.less'
-        @getParams @filePath, (params) =>
-          @compileLess params
+  handleSave: (filePath) ->
+    @getParams filePath, (params) =>
+      @compileLess params
 
   writeFiles: (output, newPath, newFile) ->
     async.series
