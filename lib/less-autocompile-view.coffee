@@ -4,6 +4,7 @@ less     = require 'less'
 mkdirp   = require 'mkdirp'
 path     = require 'path'
 readline = require 'readline'
+{CompositeDisposable} = require 'atom'
 
 module.exports =
 class LessAutocompileView
